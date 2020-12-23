@@ -1,0 +1,30 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type UserObjectType {
+  _id: ID!
+  username: String!
+  email: String!
+  date: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type AuthToken {
+  token: String!
+}
+
+type Query {
+  getHello: String!
+  user(id: String!): UserObjectType!
+  users: [UserObjectType!]!
+}
+
+type Mutation {
+  createUser(username: String!, password: String!, email: String!): AuthToken!
+  login(password: String!, username: String!): AuthToken!
+}
