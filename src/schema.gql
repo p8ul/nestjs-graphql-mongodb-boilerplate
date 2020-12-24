@@ -2,8 +2,8 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type UserObjectType {
-  _id: ID!
+type UserEntity {
+  _id: String!
   username: String!
   email: String!
   date: DateTime!
@@ -20,8 +20,8 @@ type AuthToken {
 
 type Query {
   getHello: String!
-  user(id: String!): UserObjectType!
-  users: [UserObjectType!]!
+  user(id: String!): UserEntity!
+  users: [UserEntity!]!
 }
 
 type Mutation {

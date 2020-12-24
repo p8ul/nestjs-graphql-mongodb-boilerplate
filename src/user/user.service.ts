@@ -1,10 +1,10 @@
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createHmac } from 'crypto';
-import { IUser } from './user.model';
 import { IToken, RegisterPayload } from './types';
+import { UserEntity } from 'src/database/entity/user.entity';
 
 @Injectable()
 export class UserService {
@@ -14,8 +14,8 @@ export class UserService {
    */
   private jwtService = new JwtService({ secret: 'hard!to-guess_secret' });
   constructor(
-    @InjectModel('User')
-    private readonly userModel: Model<IUser>,
+    @InjectRepository(UserEntity)
+    private readonly userModel: Repository<UserEntity>,
   ) {}
 
   /**
@@ -23,8 +23,8 @@ export class UserService {
    * @param {string} id
    * @returns {Promise<IUser>}
    */
-  get(id: string): Promise<IUser> {
-    return this.userModel.findById(id).exec();
+  get(id: string): Promise<UserEntity> {
+    return this.userModel.findOne({ _id: id });
   }
 
   /**
@@ -33,29 +33,27 @@ export class UserService {
    * @param {string} password
    * @returns {Promise<IUser>}
    */
-  getUserByPassword(username: string, password: string): Promise<IUser> {
-    return this.userModel
-      .findOne({
-        username,
-        password: createHmac('sha256', password).digest('hex'),
-      })
-      .exec();
+  getUserByPassword(username: string, password: string): Promise<UserEntity> {
+    return this.userModel.findOne({
+      username,
+      password: createHmac('sha256', password).digest('hex'),
+    });
   }
 
   /**
    * Fetch user by id
    * @param {string} id user id
    */
-  getUserById(id: string): Promise<IUser> {
-    return this.userModel.findById({ id }).exec();
+  getUserById(id: string): Promise<UserEntity> {
+    return this.userModel.findOne({ _id: id });
   }
 
   /**
    * Fetch all users
    * @param payload
    */
-  getUsers(): Promise<IUser[]> {
-    return this.userModel.find().exec();
+  getUsers(): Promise<UserEntity[]> {
+    return this.userModel.find();
   }
 
   /**
@@ -63,12 +61,13 @@ export class UserService {
    * @param {RegisterPayload} payload user payload
    * @returns {Promise<IUser>} created user
    */
-  async create(payload: RegisterPayload): Promise<IUser> {
-    const user = new this.userModel({
+  async create(payload: RegisterPayload): Promise<UserEntity> {
+    const user = this.userModel.create({
       ...payload,
       password: createHmac('sha256', payload.password).digest('hex'),
     });
-    return user.save();
+    this.userModel.save(user);
+    return user;
   }
 
   /**
@@ -76,7 +75,7 @@ export class UserService {
    * @param {User} param user payload to generate token
    * @returns {Promise<IToken>} token body
    */
-  async createToken({ _id, username, email }: IUser): Promise<IToken> {
+  async createToken({ _id, username, email }: UserEntity): Promise<IToken> {
     return {
       token: this.jwtService.sign({ _id, username, email }),
     };

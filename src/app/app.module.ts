@@ -1,23 +1,27 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { MongooseModule, MongooseModuleAsyncOptions } from '@nestjs/mongoose';
 import { ConfigModule } from 'src/config/config.module';
-import { ConfigService } from 'src/config/config.service';
 import { UserModule } from '../user/user.module';
 import { GraphQLModule } from '@nestjs/graphql';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
+import { ConfigService } from 'src/config/config.service';
+import { UserEntity } from 'src/database/entity/user.entity';
 
 @Module({
   imports: [
-    MongooseModule.forRootAsync({
+    TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'mongodb',
+        url: configService.get('DB_URL'),
+        synchronize: true,
+        logging: process.env.NODE_ENV === 'development' ? true : false,
+        dropSchema: process.env.NODE_ENV === 'test' ? true : false,
+        entities: [UserEntity],
+        migrations: [],
+        subscribers: [],
+      }),
       inject: [ConfigService],
-      useFactory: (configureService: ConfigService) =>
-        ({
-          uri: configureService.get('DB_URL'),
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-        } as MongooseModuleAsyncOptions),
     }),
     GraphQLModule.forRoot({
       autoSchemaFile: 'src/schema.gql',
@@ -28,7 +32,7 @@ import { GraphQLModule } from '@nestjs/graphql';
     UserModule,
     ConfigModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private connection: Connection) {}
+}

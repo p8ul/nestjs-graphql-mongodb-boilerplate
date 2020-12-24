@@ -1,7 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { IUser } from './user.model';
-import { AuthToken, UserObjectType } from './user.objecttypes';
+import { AuthToken, UserEntity } from 'src/database/entity/user.entity';
 import { UserService } from './user.service';
 
 @Resolver()
@@ -13,8 +12,8 @@ export class UserResolver {
     return 'Hello World From Nestjs/GraphQL';
   }
 
-  @Query(() => UserObjectType)
-  async user(@Args('id') id: string): Promise<IUser> {
+  @Query(() => UserEntity)
+  async user(@Args('id') id: string): Promise<UserEntity> {
     const user = await this.userService.getUserById(id);
     if (!user) {
       throw new NotFoundException(id);
@@ -22,8 +21,8 @@ export class UserResolver {
     return user;
   }
 
-  @Query(() => [UserObjectType])
-  async users(): Promise<IUser[]> {
+  @Query(() => [UserEntity])
+  async users(): Promise<UserEntity[]> {
     return await this.userService.getUsers();
   }
 
