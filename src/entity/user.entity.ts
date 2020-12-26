@@ -1,13 +1,10 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
+import { BaseAppEntity } from './base.entity';
 
 @Entity()
 @ObjectType()
-export class UserEntity {
-  @PrimaryGeneratedColumn('uuid')
-  @Field()
-  _id: string;
-
+export class UserEntity extends BaseAppEntity {
   @Column()
   @Field()
   username: string;
@@ -19,9 +16,13 @@ export class UserEntity {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ default: false })
   @Field()
-  date: Date;
+  verified: boolean;
+
+  @Column({ type: Date, nullable: true })
+  @Field()
+  lastLogin: Date | null;
 }
 
 @ObjectType()

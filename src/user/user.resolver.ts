@@ -1,9 +1,12 @@
 import { NotFoundException } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation } from '@nestjs/graphql';
-import { AuthToken, UserEntity } from 'src/database/entity/user.entity';
+import { Permission } from 'src/common/global-types';
+import { Allow } from 'src/decorators/allow.decorator';
+import { AuthToken, UserEntity } from 'src/entity/user.entity';
+import { createUserInput } from './types';
 import { UserService } from './user.service';
 
-@Resolver()
+@Resolver('User')
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
@@ -27,22 +30,23 @@ export class UserResolver {
   }
 
   @Mutation(() => AuthToken)
-  async createUser(
-    @Args('email') email: string,
-    @Args('password') password: string,
-    @Args('username') username: string,
-  ) {
-    const user = await this.userService.create({ email, username, password });
+  @Allow(Permission.Public)
+  async createUser(@Args('createUserInput') createUserInput: createUserInput) {
+    const user = await this.userService.create(createUserInput);
     const token = this.userService.createToken(user);
     return token;
   }
 
   @Mutation(() => AuthToken)
+  @Allow(Permission.Public)
   async login(
     @Args('username') username: string,
     @Args('password') password: string,
   ) {
     const user = await this.userService.getUserByPassword(username, password);
+    if (!user) {
+      throw new NotFoundException();
+    }
     const token = this.userService.createToken(user);
     return token;
   }

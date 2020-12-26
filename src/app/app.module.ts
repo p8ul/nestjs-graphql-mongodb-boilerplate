@@ -3,9 +3,11 @@ import { ConfigModule } from 'src/config/config.module';
 import { UserModule } from '../user/user.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Connection } from 'typeorm';
 import { ConfigService } from 'src/config/config.service';
-import { UserEntity } from 'src/database/entity/user.entity';
+import { UserEntity } from 'src/entity/user.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from 'src/middlewares/auth-guard';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -31,8 +33,19 @@ import { UserEntity } from 'src/database/entity/user.entity';
     }),
     UserModule,
     ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get('JWT_SECRET_KEY'),
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
 })
-export class AppModule {
-  constructor(private connection: Connection) {}
-}
+export class AppModule {}

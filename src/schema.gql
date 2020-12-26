@@ -4,9 +4,12 @@
 
 type UserEntity {
   _id: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
   username: String!
   email: String!
-  date: DateTime!
+  verified: Boolean!
+  lastLogin: DateTime!
 }
 
 """
@@ -25,6 +28,12 @@ type Query {
 }
 
 type Mutation {
-  createUser(username: String!, password: String!, email: String!): AuthToken!
+  createUser(createUserInput: createUserInput!): AuthToken!
   login(password: String!, username: String!): AuthToken!
+}
+
+input createUserInput {
+  email: String!
+  username: String!
+  password: String!
 }
